@@ -1,15 +1,15 @@
-import pygame
-
-from pygame.locals import *
+import math
+import random
 import sys
-import random, math
-import time
+import pygame
+from pygame.locals import *
 
 pygame.init()
 
-class Game():
+
+class Game:
     def __init__(self):
-        pygame.display.set_caption('Cool Lines')
+        pygame.display.set_caption("Cool Lines")
 
         self.clock = pygame.time.Clock()
         self.last_tick = pygame.time.get_ticks()
@@ -17,40 +17,40 @@ class Game():
 
         self.circles = []
 
-        self.screen = pygame.display.set_mode(self.screen_res, pygame.HWSURFACE, 32)
+        # pygame.HWSURFACE is deprecated/ignored in SDL2; passing standard display mode
+        self.screen = pygame.display.set_mode(self.screen_res)
 
         self.createCircles()
-     
-        while 1:
+
+        while True:
             self.Loop()
 
     def Loop(self):
         self.eventLoop()
-        
         self.Tick()
         self.Draw()
         pygame.display.update()
 
     def createCircles(self):
-        #circle item format: [pos, vector]
-        for i in xrange(100):
-            pos = [320, 240]
+        # circle item format: [pos, vector]
+        for _ in range(100):
+            pos = [320.0, 240.0]
             vector = self.getVector()
             self.circles.append([pos, vector])
 
     def getDistance(self, pos1, pos2):
-        return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)
+        return math.hypot(pos1[0] - pos2[0], pos1[1] - pos2[1])
 
     def getVector(self):
-        speed = 5
-        distance = [random.randrange(-40,40)/10.0, random.randrange(-40,40)/10.0]
+        speed = 5.0
+        distance = [random.randrange(-40, 40) / 10.0, random.randrange(-40, 40) / 10.0]
 
         try:
-            norm = math.sqrt(distance[0] ** 2.0 + distance[1] ** 2.0)
+            norm = math.hypot(distance[0], distance[1])
             direction = [distance[0] / norm, distance[1] / norm]
             vector = [direction[0] * speed, direction[1] * speed]
         except ZeroDivisionError:
-            vector = [self.speed]*2
+            vector = [speed, speed]
 
         return vector
 
@@ -60,7 +60,7 @@ class Game():
                 pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
-                if event.key == pygame[K_ESCAPE]:
+                if event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
 
@@ -68,12 +68,12 @@ class Game():
         self.ttime = self.clock.tick(60)
 
     def Draw(self):
-        self.screen.fill(0)
+        self.screen.fill((0, 0, 0))
 
         for circle in self.circles:
             circle[0][0] += circle[1][0]
             circle[0][1] += circle[1][1]
-            
+
             if circle[0][0] > 640 or circle[0][0] < 0:
                 circle[1][0] *= -1
 
@@ -81,10 +81,14 @@ class Game():
                 circle[1][1] *= -1
 
             for c in self.circles:
-                if self.getDistance(circle[0], c[0]) < 225:
-                    pygame.draw.line(self.screen, [0, 255, 0], circle[0], c[0])
-                if self.getDistance(circle[0], c[0]) < 200:
-                    pygame.draw.line(self.screen, [0, 0, 255], circle[0], c[0])
-                if self.getDistance(circle[0], c[0]) < 175:
-                    pygame.draw.line(self.screen, [255, 0, 0], circle[0], c[0])
-Game()
+                dist = self.getDistance(circle[0], c[0])
+                if dist < 175:
+                    pygame.draw.line(self.screen, (255, 0, 0), circle[0], c[0])
+                elif dist < 200:
+                    pygame.draw.line(self.screen, (0, 0, 255), circle[0], c[0])
+                elif dist < 225:
+                    pygame.draw.line(self.screen, (0, 255, 0), circle[0], c[0])
+
+
+if __name__ == "__main__":
+    Game()
